@@ -8,7 +8,7 @@ import (
 )
 
 type ConGroup struct {
-	rawGroup *errgroup.Group
+	errGroup *errgroup.Group
 
 	limiter   *rate.Limiter
 	waitQueue []func() error
@@ -16,7 +16,7 @@ type ConGroup struct {
 
 func WithContext(ctx context.Context) (*ConGroup, context.Context) {
 	g, ctx := errgroup.WithContext(ctx)
-	return &ConGroup{rawGroup: g}, ctx
+	return &ConGroup{errGroup: g}, ctx
 }
 
 func (g *ConGroup) SetLimiter(lim *rate.Limiter) {
@@ -31,10 +31,10 @@ func (g *ConGroup) Wait(ctx context.Context) error {
 				return err
 			}
 		}
-		g.rawGroup.Go(f)
+		g.errGroup.Go(f)
 	}
 
-	return g.rawGroup.Wait()
+	return g.errGroup.Wait()
 }
 
 func (g *ConGroup) Go(f func() error) {
@@ -49,5 +49,5 @@ func (g *ConGroup) Go(f func() error) {
 		f = t
 	}
 
-	g.rawGroup.Go(f)
+	g.errGroup.Go(f)
 }
